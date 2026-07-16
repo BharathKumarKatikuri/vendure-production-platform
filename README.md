@@ -136,3 +136,10 @@ Deploy to Production
                 ▼
 Monitoring & Health Checks
 ```
+
+## Production AWS Architecture
+
+The Vendure Production Platform is deployed on AWS using a cost-optimized production architecture. User requests are routed through Amazon Route 53 to an Application Load Balancer. The application runs on Amazon ECS as three independent services: Storefront, Vendure API, and Vendure Worker. Product assets are stored in Amazon S3, application data is stored in Amazon RDS PostgreSQL, and logs are collected using Amazon CloudWatch. The infrastructure is provisioned using Terraform.
+
+![Production AWS Architecture](production-aws-architecture.jpng)
+
