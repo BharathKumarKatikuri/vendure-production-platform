@@ -40,21 +40,6 @@ The entire infrastructure and deployment process will be managed using Infrastru
 
 ---
 
-##  Project Objectives
-
-- Deploy Vendure as a production-ready commerce platform.
-- Automate infrastructure provisioning using Terraform.
-- Build a complete CI/CD pipeline using Jenkins.
-- Containerize the application using Docker.
-- Deploy workloads on AWS.
-- Manage separate Development, Staging, and Production environments.
-- Automatically detect and validate new Vendure releases.
-- Promote validated releases to production through controlled deployment pipelines.
-- Implement production monitoring, logging, and health checks.
-- Follow industry-standard Cloud, DevOps, and Platform Engineering practices.
-
----
-
 ## Technology Stack
 
 ### Application
