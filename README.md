@@ -55,6 +55,7 @@ The primary goals of this project are to:
 - Document the architecture, implementation, and engineering decisions to create a valuable learning resource for future reference.
 - Develop a maintainable platform that can be extended with additional AWS services and production capabilities over time.
   
+---
 
 ## Technology Stack
 
@@ -136,6 +137,7 @@ Deploy to Production
                 │
                 ▼
 Monitoring & Health Checks
+
 ```
 
 ## Production AWS Architecture
