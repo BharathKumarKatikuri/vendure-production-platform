@@ -40,6 +40,22 @@ The entire infrastructure and deployment process will be managed using Infrastru
 
 ---
 
+# Project Goals
+
+The primary goals of this project are to:
+
+- Build a production-grade AWS platform for hosting and managing Vendure applications.
+- Design reusable and modular Terraform modules following Infrastructure as Code (IaC) best practices.
+- Gain practical, hands-on experience with core AWS services through real-world implementation.
+- Implement secure, scalable, and highly available cloud infrastructure based on industry standards.
+- Automate infrastructure provisioning, application deployment, and operational workflows.
+- Build and maintain custom Docker images for Vendure instead of relying solely on pre-built images.
+- Establish a complete software delivery pipeline capable of validating, testing, and promoting new Vendure releases.
+- Implement comprehensive monitoring, logging, and observability using industry-standard tools.
+- Document the architecture, implementation, and engineering decisions to create a valuable learning resource for future reference.
+- Develop a maintainable platform that can be extended with additional AWS services and production capabilities over time.
+  
+
 ## Technology Stack
 
 ### Application
@@ -127,4 +143,7 @@ Monitoring & Health Checks
 The Vendure Production Platform is deployed on AWS using a cost-optimized production architecture. User requests are routed through Amazon Route 53 to an Application Load Balancer. The application runs on Amazon ECS as three independent services: Storefront, Vendure API, and Vendure Worker. Product assets are stored in Amazon S3, application data is stored in Amazon RDS PostgreSQL, and logs are collected using Amazon CloudWatch. The infrastructure is provisioned using Terraform.
 
 ![Production AWS Architecture](production-aws-architecture.png)
+
+---
+
 
