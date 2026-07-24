@@ -40,19 +40,21 @@ The entire infrastructure and deployment process will be managed using Infrastru
 
 ---
 
-##  Project Objectives
+# Project Goals
 
-- Deploy Vendure as a production-ready commerce platform.
-- Automate infrastructure provisioning using Terraform.
-- Build a complete CI/CD pipeline using Jenkins.
-- Containerize the application using Docker.
-- Deploy workloads on AWS.
-- Manage separate Development, Staging, and Production environments.
-- Automatically detect and validate new Vendure releases.
-- Promote validated releases to production through controlled deployment pipelines.
-- Implement production monitoring, logging, and health checks.
-- Follow industry-standard Cloud, DevOps, and Platform Engineering practices.
+The primary goals of this project are to:
 
+- Build a production-grade AWS platform for hosting and managing Vendure applications.
+- Design reusable and modular Terraform modules following Infrastructure as Code (IaC) best practices.
+- Gain practical, hands-on experience with core AWS services through real-world implementation.
+- Implement secure, scalable, and highly available cloud infrastructure based on industry standards.
+- Automate infrastructure provisioning, application deployment, and operational workflows.
+- Build and maintain custom Docker images for Vendure instead of relying solely on pre-built images.
+- Establish a complete software delivery pipeline capable of validating, testing, and promoting new Vendure releases.
+- Implement comprehensive monitoring, logging, and observability using industry-standard tools.
+- Document the architecture, implementation, and engineering decisions to create a valuable learning resource for future reference.
+- Develop a maintainable platform that can be extended with additional AWS services and production capabilities over time.
+  
 ---
 
 ## Technology Stack
@@ -135,11 +137,15 @@ Deploy to Production
                 │
                 ▼
 Monitoring & Health Checks
+
 ```
 
 ## Production AWS Architecture
 
 The Vendure Production Platform is deployed on AWS using a cost-optimized production architecture. User requests are routed through Amazon Route 53 to an Application Load Balancer. The application runs on Amazon ECS as three independent services: Storefront, Vendure API, and Vendure Worker. Product assets are stored in Amazon S3, application data is stored in Amazon RDS PostgreSQL, and logs are collected using Amazon CloudWatch. The infrastructure is provisioned using Terraform.
 
-![Production AWS Architecture](production-aws-architecture.jpng)
+![Production AWS Architecture](production-aws-architecture.png)
+
+---
+
 
