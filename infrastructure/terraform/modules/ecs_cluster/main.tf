@@ -5,7 +5,12 @@ resource "aws_ecs_cluster" "this" {
     name  = "containerInsights"
     value = var.container_insights_enabled ? "enabled" : "disabled"
   }
-  tags = {
-    name = var.cluster_name
-  }
+
+
+  tags = merge(
+    var.tags,
+    {
+      Name = var.cluster_name
+    }
+  )
 }

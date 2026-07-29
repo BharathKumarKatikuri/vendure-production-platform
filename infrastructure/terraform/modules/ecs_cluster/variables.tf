@@ -8,3 +8,9 @@ variable "container_insights_enabled" {
   type        = bool
   default     = true
 }
+
+variable "tags" {
+  description = "Tags to apply to the ECS cluster."
+  type        = map(string)
+  default     = {}
+}
