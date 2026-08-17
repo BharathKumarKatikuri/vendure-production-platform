@@ -11,6 +11,8 @@ import { DashboardPlugin } from '@vendure/dashboard/plugin';
 import { GraphiqlPlugin } from '@vendure/graphiql-plugin';
 import 'dotenv/config';
 import path from 'path';
+import { HealthPlugin } from './plugins/health/health.plugin';
+import { MetricsPlugin } from './plugins/metrics/metrics.plugin';
 
 const IS_DEV = process.env.APP_ENV === 'dev';
 const serverPort = +process.env.PORT || 3000;
@@ -60,6 +62,8 @@ export const config: VendureConfig = {
     // need to be updated. See the "Migrations" section in README.md.
     customFields: {},
     plugins: [
+	HealthPlugin,
+	MetricsPlugin,
         GraphiqlPlugin.init(),
         AssetServerPlugin.init({
             route: 'assets',

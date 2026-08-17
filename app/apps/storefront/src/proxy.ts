@@ -8,4 +8,6 @@ export function proxy(request: NextRequest) {
     return middleware(request);
 }
 
-export const config = {matcher: ['/((?!api|_next|_vercel|.*\\..*).*)']};
+export const config = {
+  matcher: ['/((?!api|health|metrics|_next|_vercel|.*\\..*).*)']
+};

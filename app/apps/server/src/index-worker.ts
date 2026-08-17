@@ -1,8 +1,13 @@
 import { bootstrapWorker } from '@vendure/core';
 import { config } from './vendure-config';
+import { startWorkerMetricsServer } from './worker-metrics';
 
 bootstrapWorker(config)
-    .then(worker => worker.startJobQueue())
+    .then(async worker => {
+        startWorkerMetricsServer();
+	await worker.startJobQueue();
+    })
+
     .catch(err => {
         console.log(err);
     });
