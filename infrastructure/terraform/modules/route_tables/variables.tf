@@ -10,8 +10,8 @@ variable "igw_id" {
 }
 
 variable "subnet_ids" {
-  description = "subnet IDs to associate with the route table"
-  type        = set(string)
+  description = "Map of subnet names to subnet IDs associated with the route table"
+  type        = map(string)
 }
 
 variable "destination_cidr_block" {

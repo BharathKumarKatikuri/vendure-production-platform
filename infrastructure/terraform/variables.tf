@@ -72,22 +72,6 @@ variable "security_groups" {
   type = map(object({
     name        = string
     description = string
-    ingress_rules = list(object({
-      description = string
-      from_port   = number
-      to_port     = number
-      protocol    = string
-      cidr_blocks = list(string)
-    }))
-
-    egress_rules = list(object({
-      description = string
-      from_port   = number
-      to_port     = number
-      protocol    = string
-      cidr_blocks = list(string)
-    }))
-
   }))
 }
 
@@ -108,7 +92,7 @@ variable "ecs_task_definitions" {
     family            = string
     container_name    = string
     container_image   = string
-    container_port    = optional(list(number), [])
+    container_port    = optional(number)
     container_command = optional(list(string), [])
     cpu               = number
     memory            = number
@@ -118,15 +102,20 @@ variable "ecs_task_definitions" {
   }))
 }
 
-variable "ecs_task_execution_role_name" {
-  description = "Name of the IAM role used by ECS to pull images from ECR and publish container logs."
-  type        = string
+variable "ecs_task_execution_roles" {
+  description = "ECS task execution roles used by each Vendure workload."
+
+  type = map(object({
+    role_name = string
+  }))
 }
 
-variable "ecr_repository_name" {
-  description = "Name of the Amazon ECR repository."
+variable "ecr_repositories" {
+  description = "ECR repositories used by Vendure Workloads."
 
-  type = string
+  type = map(object({
+    repository_name = string
+  }))
 }
 
 variable "ecr_scan_on_push" {
@@ -183,3 +172,144 @@ variable "common_tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "database_identifier" {
+  description = "Identifier for the Vendure production RDS instance."
+  type        = string
+}
+
+variable "database_name" {
+  description = "Initial PostgreSQL database name for Vendure."
+  type        = string
+}
+
+variable "master_username" {
+  description = "Master username for the Vendure PostgreSQL instance."
+  type        = string
+}
+
+variable "engine_version" {
+  description = "Engine versiom for the Vendure PostgreSQL instance."
+  type        = string
+}
+
+variable "parameter_group_family" {
+  description = "parameter_group_family for the Vendure PostgreSQL instance."
+  type        = string
+}
+
+variable "instance_class" {
+  description = "instance class for the Vendure database"
+  type        = string
+}
+
+variable "allocated_storage" {
+  description = "allocating the storage for the PostgreSQL instance"
+  type        = number
+}
+
+variable "max_allocated_storage" {
+  description = "max_allocated_storage for the Vendure PostgreSQL instance."
+  type        = number
+}
+
+variable "storage_type" {
+  description = "storage type is used to select the type of storage for the PostgreSQL instance."
+  type        = string
+}
+
+variable "database_port" {
+  description = "Used to communicate with the instance."
+  type        = number
+}
+
+variable "backup_retention_period" {
+  description = "Used to store the backfiles."
+  type        = number
+}
+
+variable "multi_az" {
+  description = "Using multi-az for the avaliablity."
+  type        = bool
+}
+
+variable "deletion_protection" {
+  description = "Used for protection of data present in the RDS instance."
+  type        = bool
+}
+
+variable "skip_final_snapshot" {
+  description = "skips the final snapshot in the Vendure PostgreSQL instance."
+  type        = bool
+}
+
+variable "final_snapshot_identifier" {
+  description = "final snapshot identifier used in the Vendure PostgreSQL instance."
+  type        = string
+  default     = null
+}
+
+
+variable "alb_name" {
+  description = "Production Application Load Balancer name."
+  type        = string
+}
+
+variable "alb_internal" {
+  description = "Whether the production ALB is internal."
+  type        = bool
+}
+
+variable "alb_load_balancer_type" {
+  description = "Production load balancer type."
+  type        = string
+}
+
+
+variable "target_groups" {
+  description = "Configuration for ALB target groups."
+
+  type = map(object({
+    name              = string
+    port              = number
+    protocol          = string
+    target_type       = string
+    health_check_path = string
+  }))
+}
+
+variable "alb_listener_port" {
+  description = "Port on which the ALB listener accepts incoming traffic."
+  type        = number
+}
+
+variable "alb_listener_protocol" {
+  description = "Protocol used by the ALB listener."
+  type        = string
+}
+
+
+
+variable "alb_listener_rule_priority" {
+  description = "alb uses listener rule priority"
+  type        = number
+}
+
+variable "alb_listener_rule_path_patterns" {
+  description = "alb uses listener rule path patterns"
+  type        = list(string)
+}
+
+
+variable "ecs_services" {
+  description = "Configuration for Vendure ECS services."
+
+  type = map(object({
+    service_name     = string
+    desired_count    = number
+    assign_public_ip = bool
+    container_name   = optional(string)
+    container_port   = optional(number)
+  }))
+}
+

@@ -8,3 +8,12 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "secret_arns" {
+  description = "Secrets Manager ARNs that ECS is allowed to retrieve."
+  type        = list(string)
+  default     = []
+}
+
+
+
