@@ -96,6 +96,7 @@ variable "ecs_task_definitions" {
     container_command = optional(list(string), [])
     cpu               = number
     memory            = number
+    metrics_port      = number
     log_group_key     = string
     environment       = optional(map(string), {})
     secrets           = optional(map(string), {})
@@ -313,3 +314,54 @@ variable "ecs_services" {
   }))
 }
 
+
+variable "amp_workspace_alias" {
+  description = "Alias for the Amazon Managed service for Prometheus workspace."
+  type        = string
+}
+
+
+variable "ecs_task_roles" {
+  description = "IAM task roles used by each Vendure ECS workload."
+  type = map(object({
+    role_name = string
+  }))
+}
+
+
+variable "adot_image" {
+  description = "Pinned AWS Distro for OpenTelemetry collector image used by ECS sidecars."
+  type        = string
+}
+
+
+variable "grafana_workspace_name" {
+  description = "Name of the Amazon Managed Grafana workspace."
+  type        = string
+}
+
+variable "grafana_authentication_providers" {
+  description = "Authentication providers used by the Amazon Managed Grafana workspace."
+  type        = set(string)
+}
+
+variable "grafana_account_access_type" {
+  description = "AWS account access scope for the Amazon Managed Grafana workspace."
+  type        = string
+}
+
+variable "grafana_permission_type" {
+  description = "Permission model used by the Amazon Managed Grafana workspace."
+  type        = string
+}
+
+variable "grafana_role_name" {
+  description = "Name of the IAM role assumed by Amazon Managed Grafana."
+  type        = string
+}
+
+
+variable "grafana_admin_user_ids" {
+  description = "IAM Identity Center user IDs granted adminstrator access to the Grafana workspace."
+  type        = set(string)
+}

@@ -1,0 +1,37 @@
+extensions:
+  sigv4auth:
+    region: ${aws_region}
+    service: aps
+
+receivers:
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: "${job_name}"
+          scrape_interval: 30s
+          static_configs:
+            - targets:
+                - "127.0.0.1:${metrics_port}"
+
+processors:
+  batch: {}
+
+
+exporters:
+  prometheus_remote_write:
+    endpoint: "${amp_remote_write_endpoint}"
+    auth:
+      authenticator: sigv4auth
+
+service:
+  extensions:
+    - sigv4auth
+
+  pipelines:
+    metrics:
+      receivers:
+        - prometheus
+      processors:
+        - batch
+      exporters:
+        - prometheus_remote_write

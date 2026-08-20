@@ -138,4 +138,34 @@ output "ecs_service_ids" {
 }
 
 
+output "amp_workspace_id" {
+  description = "ID of the Amazon Managed Service for the Prometheus workspace."
+  value       = module.amp.workspace_id
+}
 
+output "amp_workspace_arn" {
+  description = "ARN of the Amazon Managed Service for Prometheus workspace."
+  value       = module.amp.workspace_arn
+}
+
+output "amp_prometheus_endpoint" {
+  description = "Prometheus endpoint of the AMP workspace."
+  value       = module.amp.prometheus_endpoint
+}
+
+
+
+output "grafana_workspace_id" {
+  description = "ID of the Amazon Managed Service for the Grafana workspace"
+  value       = module.grafana.workspace_id
+}
+
+output "grafana_workspace_arn" {
+  description = "ARN of the Amazon Managed Service for the Grafana workspace."
+  value       = module.grafana.workspace_arn
+}
+
+output "grafana_workspace_endpoint" {
+  description = "Grafana endpoint of the workspace."
+  value       = module.grafana.workspace_endpoint
+}

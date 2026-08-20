@@ -125,6 +125,7 @@ module "ecs_task_definition" {
   memory            = each.value.memory
 
   execution_role_arn = module.ecs_task_execution_role[each.key].role_arn
+  task_role_arn      = module.ecs_task_role[each.key].role_arn
 
   log_group_name = module.cloudwatch_log_group[each.value.log_group_key].log_group_name
   aws_region     = var.aws_region
@@ -148,7 +149,35 @@ module "ecs_task_definition" {
   )
 
   tags = var.common_tags
+
+  sidecar_container = {
+    name      = "adot-collector"
+    image     = var.adot_image
+    essential = false
+    command = [
+      "--config=env:AOT_CONFIG_CONTENT"
+    ]
+
+    environment = {
+      AOT_CONFIG_CONTENT = templatefile(
+        "${path.module}/templates/adot-prometheus.yaml.tftpl",
+        {
+          aws_region = var.aws_region
+
+          job_name = each.value.container_name
+
+          metrics_port = each.value.metrics_port
+
+          amp_remote_write_endpoint = "${trimsuffix(module.amp.prometheus_endpoint, "/")}/api/v1/remote_write"
+
+        }
+      )
+    }
+
+    log_group_name = module.cloudwatch_log_group["adot"].log_group_name
+  }
 }
+
 
 moved {
   from = module.ecs_task_execution_role
@@ -314,4 +343,45 @@ module "ecs_service" {
   container_name   = try(each.value.container_name, null)
   container_port   = try(each.value.container_port, null)
   target_group_arn = contains(["api", "storefront"], each.key) ? module.target_groups[each.key].target_group_arn : null
+}
+
+module "amp" {
+  source = "./modules/amp"
+
+  workspace_alias = var.amp_workspace_alias
+  tags            = var.common_tags
+}
+
+
+module "ecs_task_role" {
+  for_each = var.ecs_task_roles
+
+  source = "./modules/ecs_task_roles"
+
+  role_name         = each.value.role_name
+  amp_workspace_arn = module.amp.workspace_arn
+  tags              = var.common_tags
+}
+
+
+module "grafana_iam_role" {
+  source = "./modules/grafana_iam_role"
+
+  role_name         = var.grafana_role_name
+  amp_workspace_arn = module.amp.workspace_arn
+  tags              = var.common_tags
+}
+
+module "grafana" {
+  source = "./modules/grafana"
+
+  workspace_name           = var.grafana_workspace_name
+  authentication_providers = var.grafana_authentication_providers
+  account_access_type      = var.grafana_account_access_type
+  permission_type          = var.grafana_permission_type
+
+  role_arn       = module.grafana_iam_role.role_arn
+  admin_user_ids = var.grafana_admin_user_ids
+
+  tags = var.common_tags
 }

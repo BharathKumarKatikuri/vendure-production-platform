@@ -74,3 +74,18 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "sidecar_container" {
+  description = "Optional sidecar container running alongside the primary application"
+
+  type = object({
+    name           = string
+    image          = string
+    essential      = bool
+    command        = list(string)
+    environment    = map(string)
+    log_group_name = string
+  })
+
+  default = null
+}
