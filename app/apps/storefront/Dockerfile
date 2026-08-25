@@ -3,13 +3,19 @@ FROM node:20-bookworm-slim AS build
 
 WORKDIR /app
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends --only-upgrade \
+        libcap2 \
+        libgnutls30 \
+    && rm -rf /var/lib/apt/lists/*
+
 # Copy workspace manifest files
 COPY package.json package-lock.json ./
 COPY apps/server/package.json ./apps/server/package.json
 COPY apps/storefront/package.json ./apps/storefront/package.json
 
 # Install exact locked dependencies
-RUN npm ci
+RUN npm ci --workspace=storefront --include-workspace-root --no-audit --no-fund
 
 # Copy Storefront source
 COPY apps/storefront ./apps/storefront
@@ -31,6 +37,12 @@ FROM node:20-bookworm-slim AS runtime
 
 WORKDIR /app
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends --only-upgrade \
+        libcap2 \
+        libgnutls30 \
+    && rm -rf /var/lib/apt/lists/*
+
 ENV NODE_ENV=production
 ENV PORT=3001
 ENV HOSTNAME=0.0.0.0
@@ -46,6 +58,9 @@ COPY --from=build --chown=node:node \
 COPY --from=build --chown=node:node \
     /app/apps/storefront/public \
     ./apps/storefront/public
+
+RUN rm -rf /usr/local/lib/node_modules/npm \
+    && rm -f /usr/local/bin/npm /usr/local/bin/npx
 
 USER node
 

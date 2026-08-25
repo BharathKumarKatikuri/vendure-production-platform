@@ -21,9 +21,8 @@ const nextConfig: NextConfig = {
             }
         ],
     },
-    experimental: {
-        rootParams: true
-    }
+    
+    
 };
 
 export default withNextIntl(nextConfig);
