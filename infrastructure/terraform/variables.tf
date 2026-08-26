@@ -157,6 +157,56 @@ variable "ecr_encryption_type" {
   }
 }
 
+variable "s3_asset_bucket_name" {
+  description = "Unique name for the Vendure production asset S3 bucket"
+  type        = string
+
+  validation {
+    condition = (
+      length(var.s3_asset_bucket_name) >= 3 &&
+      length(var.s3_asset_bucket_name) <= 63 &&
+      can(regex("^[a-z0-9][a-z0-9.-]*[a-z0-9]$", var.s3_asset_bucket_name))
+    )
+
+    error_message = "S3 asset bucket name must be between 3 and 63 characters and contain only lowercase letters, numbers, periods, and hyphens."
+  }
+}
+
+variable "s3_asset_bucket_versioning" {
+  description = "Whether versioning is enabled for the Vendure asset bucket"
+  type        = bool
+}
+
+variable "s3_asset_bucket_encryption_type" {
+  description = "Server-side encryption algorithm for the Vendure asset bucket"
+  type        = string
+
+  validation {
+    condition = contains(
+      ["AES256", "aws:kms"],
+      var.s3_asset_bucket_encryption_type
+    )
+
+    error_message = "S3 asset bucket encryption type must be either AES256 or aws:kms."
+  }
+}
+
+variable "s3_asset_public_access_block" {
+  description = "Public access block configuration for the Vendure asset bucket"
+
+  type = object({
+    block_public_acls       = bool
+    ignore_public_acls      = bool
+    block_public_policy     = bool
+    restrict_public_buckets = bool
+  })
+}
+
+variable "s3_asset_force_destroy" {
+  description = "Whether Terraform may delete the Vendure asset bucket when it contains objects"
+  type        = bool
+}
+
 
 variable "cloudwatch_log_groups" {
   description = "CloudWatch log groups used by ECS containers."
@@ -364,4 +414,28 @@ variable "grafana_role_name" {
 variable "grafana_admin_user_ids" {
   description = "IAM Identity Center user IDs granted adminstrator access to the Grafana workspace."
   type        = set(string)
+}
+
+
+
+variable "app_secret_name" {
+  description = "Name of the Secrets Manager secret used by the Vendure application."
+  type        = string
+}
+
+variable "app_secret_recovery_window_in_days" {
+  description = "Recovery window before permanent deletion of the Vendure application secret."
+  type        = number
+
+  validation {
+    condition = (
+      var.app_secret_recovery_window_in_days == 0 ||
+      (
+        var.app_secret_recovery_window_in_days >= 7 &&
+        var.app_secret_recovery_window_in_days <= 30
+      )
+    )
+
+    error_message = "app_secret_recovery_window_in_days must be 0 or between 7 and 30 days."
+  }
 }

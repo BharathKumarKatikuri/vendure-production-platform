@@ -15,6 +15,17 @@ output "ecr_repository_url" {
 }
 
 
+output "s3_asset_bucket_id" {
+  description = "ID/name of the Vendure asset S3 bucket"
+  value       = module.s3_asset_bucket.bucket_id
+}
+
+output "s3_asset_bucket_arn" {
+  description = "ARN of the Vendure asset S3 bucket"
+  value       = module.s3_asset_bucket.bucket_arn
+}
+
+
 output "database_identifier" {
   description = "Identifier of the Vendure production RDS instance."
   value       = module.rds.database_identifier

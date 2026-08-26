@@ -6,7 +6,8 @@ import {
     VendureConfig,
 } from '@vendure/core';
 import { defaultEmailHandlers, EmailPlugin, FileBasedTemplateLoader } from '@vendure/email-plugin';
-import { AssetServerPlugin } from '@vendure/asset-server-plugin';
+import { AssetServerPlugin, configureS3AssetStorage } from '@vendure/asset-server-plugin';
+import { fromContainerMetadata } from '@aws-sdk/credential-providers';
 import { DashboardPlugin } from '@vendure/dashboard/plugin';
 import { GraphiqlPlugin } from '@vendure/graphiql-plugin';
 import 'dotenv/config';
@@ -15,7 +16,24 @@ import { HealthPlugin } from './plugins/health/health.plugin';
 import { MetricsPlugin } from './plugins/metrics/metrics.plugin';
 
 const IS_DEV = process.env.APP_ENV === 'dev';
+const IS_PROD = process.env.APP_ENV === 'production';
 const serverPort = +process.env.PORT || 3000;
+
+const s3AssetBucketName = process.env.S3_ASSET_BUCKET_NAME;
+const awsRegion = process.env.AWS_REGION;
+
+
+if (IS_PROD) {
+    if (!s3AssetBucketName) {
+        throw new Error('S3_ASSET_BUCKET_NAME is required in production');
+    }
+
+    if (!awsRegion) {
+        throw new Error('AWS_REGION is required in production');
+    }
+
+
+}
 
 export const config: VendureConfig = {
     apiOptions: {
@@ -68,15 +86,27 @@ export const config: VendureConfig = {
         AssetServerPlugin.init({
             route: 'assets',
             assetUploadDir: path.join(__dirname, '../static/assets'),
-            // For local dev, the correct value for assetUrlPrefix should
-            // be guessed correctly, but for production it will usually need
-            // to be set manually to match your production url.
-            assetUrlPrefix: IS_DEV ? undefined : 'https://www.my-shop.com/assets/',
-        }),
-        DefaultSchedulerPlugin.init(),
-        DefaultJobQueuePlugin.init({ useDatabaseForBuffer: true }),
-        DefaultSearchPlugin.init({ bufferUpdates: false, indexStockStatus: true }),
-        EmailPlugin.init({
+
+
+            storageStrategyFactory: IS_PROD
+                ? configureS3AssetStorage({
+                    bucket: s3AssetBucketName!,
+                    credentials: fromContainerMetadata(),
+                    nativeS3Configuration: {
+                        region: awsRegion,
+                    },
+                })
+                : undefined,
+         }),
+
+
+     DefaultSchedulerPlugin.init(),
+     DefaultJobQueuePlugin.init({ useDatabaseForBuffer: true }),
+     DefaultSearchPlugin.init({ bufferUpdates: false, indexStockStatus: true }),
+        ...(IS_DEV
+    ? [
+
+       EmailPlugin.init({
             devMode: true,
             outputPath: path.join(__dirname, '../static/email/test-emails'),
             route: 'mailbox',
@@ -91,11 +121,17 @@ export const config: VendureConfig = {
                 changeEmailAddressUrl: 'http://localhost:8080/verify-email-address-change'
             },
         }),
-        DashboardPlugin.init({
+
+      ]
+
+     :[]),
+
+
+       DashboardPlugin.init({
             route: 'dashboard',
             appDir: IS_DEV
                 ? path.join(__dirname, '../dist/dashboard')
                 : path.join(__dirname, 'dashboard'),
         }),
-    ],
+     ],
 };

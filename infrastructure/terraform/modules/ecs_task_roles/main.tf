@@ -46,3 +46,44 @@ resource "aws_iam_role_policy" "amp_remote_write" {
   role   = aws_iam_role.this.id
   policy = data.aws_iam_policy_document.amp_remote_write.json
 }
+
+
+data "aws_iam_policy_document" "s3_asset_access" {
+  count = var.enable_s3_asset_access ? 1 : 0
+
+  statement {
+    sid    = "ListAssetBucket"
+    effect = "Allow"
+
+    actions = [
+      "s3:ListBucket"
+    ]
+
+    resources = [
+      var.s3_asset_bucket_arn
+    ]
+  }
+
+  statement {
+    sid    = "ManageAssetObjects"
+    effect = "Allow"
+
+    actions = [
+      "s3:GetObject",
+      "s3:PutObject",
+      "s3:DeleteObject"
+    ]
+
+    resources = [
+      "${var.s3_asset_bucket_arn}/*"
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "s3_asset_access" {
+  count = var.enable_s3_asset_access ? 1 : 0
+
+  name   = "${var.role_name}-s3-asset-access"
+  role   = aws_iam_role.this.id
+  policy = data.aws_iam_policy_document.s3_asset_access[0].json
+}

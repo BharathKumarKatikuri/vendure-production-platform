@@ -133,20 +133,30 @@ module "ecs_task_definition" {
   environment = merge(
     each.value.environment,
     contains(["api", "worker"], each.key) ? {
-      DB_HOST = module.rds.database_address
-      DB_PORT = tostring(module.rds.database_port)
-      DB_NAME = module.rds.database_name
-    } : {}
-  )
+      DB_HOST              = module.rds.database_address
+      DB_PORT              = tostring(module.rds.database_port)
+      DB_NAME              = module.rds.database_name
+      S3_ASSET_BUCKET_NAME = module.s3_asset_bucket.bucket_id
+      AWS_REGION           = var.aws_region
+    } : {},
 
+  )
 
   secrets = merge(
     each.value.secrets,
+
     contains(["api", "worker"], each.key) ? {
       DB_USERNAME = "${module.rds.master_user_secret_arn}:username::"
       DB_PASSWORD = "${module.rds.master_user_secret_arn}:password::"
+    } : {},
+
+    each.key == "api" ? {
+      SUPERADMIN_USERNAME = "${module.app_secret.secret_arn}:SUPERADMIN_USERNAME::"
+      SUPERADMIN_PASSWORD = "${module.app_secret.secret_arn}:SUPERADMIN_PASSWORD::"
+      COOKIE_SECRET       = "${module.app_secret.secret_arn}:COOKIE_SECRET::"
     } : {}
   )
+
 
   tags = var.common_tags
 
@@ -192,8 +202,12 @@ module "ecs_task_execution_role" {
 
   role_name = each.value.role_name
 
-  secret_arns = contains(["api", "worker"], each.key) ? [
+  secret_arns = each.key == "api" ? [
+    module.rds.master_user_secret_arn,
+    module.app_secret.secret_arn
+    ] : each.key == "worker" ? [
     module.rds.master_user_secret_arn
+
   ] : []
 
   tags = var.common_tags
@@ -232,6 +246,20 @@ moved {
   to   = module.ecr["server"]
 }
 
+
+module "s3_asset_bucket" {
+  source = "./modules/s3_bucket"
+
+  s3_bucket_name            = var.s3_asset_bucket_name
+  s3_bucket_versioning      = var.s3_asset_bucket_versioning
+  s3_bucket_encryption_type = var.s3_asset_bucket_encryption_type
+  s3_public_access_block    = var.s3_asset_public_access_block
+  s3_force_destroy          = var.s3_asset_force_destroy
+
+  tags = var.common_tags
+}
+
+
 module "rds" {
   source = "./modules/rds"
 
@@ -262,6 +290,15 @@ module "rds" {
   ]
 
   common_tags = var.common_tags
+}
+
+module "app_secret" {
+  source = "./modules/secrets_manager"
+
+  secret_name             = var.app_secret_name
+  recovery_window_in_days = var.app_secret_recovery_window_in_days
+
+  tags = var.common_tags
 }
 
 
@@ -358,9 +395,16 @@ module "ecs_task_role" {
 
   source = "./modules/ecs_task_roles"
 
-  role_name         = each.value.role_name
-  amp_workspace_arn = module.amp.workspace_arn
-  tags              = var.common_tags
+  role_name              = each.value.role_name
+  amp_workspace_arn      = module.amp.workspace_arn
+  enable_s3_asset_access = contains(["api", "worker"], each.key)
+
+  s3_asset_bucket_arn = contains(
+    ["api", "worker"],
+    each.key
+  ) ? module.s3_asset_bucket.bucket_arn : null
+
+  tags = var.common_tags
 }
 
 
