@@ -140,6 +140,10 @@ module "ecs_task_definition" {
       AWS_REGION           = var.aws_region
     } : {},
 
+    each.key == "storefront" ? {
+      VENDURE_SHOP_API_URL = "http://${module.alb.alb_dns_name}/shop-api"
+    } : {}
+
   )
 
   secrets = merge(
