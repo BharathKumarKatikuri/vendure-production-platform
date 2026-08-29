@@ -103,6 +103,12 @@ variable "ecs_task_definitions" {
   }))
 }
 
+variable "server_image_uri" {
+  description = "Immutable ECR image URI for the Vendure API and Worker."
+  type        = string
+}
+
+
 variable "ecs_task_execution_roles" {
   description = "ECS task execution roles used by each Vendure workload."
 
