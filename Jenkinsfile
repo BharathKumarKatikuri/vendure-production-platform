@@ -99,6 +99,57 @@ pipeline {
          }
 
 
+           stage('Terraform Production Preflight') {
+               steps {
+                   withCredentials([[
+                       $class: 'AmazonWebServicesCredentialsBinding',
+                       credentialsId: 'vendure-jenkins-terraform'
+                   ]]) {
+                       sh '''
+                           set -eu
+                           set +x
+
+                           ROLE_CREDS="$(aws sts assume-role \
+                             --role-arn arn:aws:iam::974268348514:role/vendure-terraform-deployer \
+                             --role-session-name "jenkins-preflight-${BUILD_NUMBER}" \
+                             --query 'Credentials.[AccessKeyId,SecretAccessKey,SessionToken]' \
+                             --output text)"
+
+                           export AWS_ACCESS_KEY_ID="$(printf '%s\n' "$ROLE_CREDS" | awk '{print $1}')"
+                           export AWS_SECRET_ACCESS_KEY="$(printf '%s\n' "$ROLE_CREDS" | awk '{print $2}')"
+                           export AWS_SESSION_TOKEN="$(printf '%s\n' "$ROLE_CREDS" | awk '{print $3}')"
+
+                           unset ROLE_CREDS
+
+                           echo "===== Terraform preflight identity ====="
+                           aws sts get-caller-identity \
+                             --query '{Account:Account,Arn:Arn}' \
+                             --output table
+
+                           cd infrastructure/terraform
+
+                           terraform init \
+                             -reconfigure \
+                             -input=false
+
+                           echo "===== Read-only Terraform refresh preflight ====="
+
+                           terraform plan \
+                             -refresh-only \
+                             -input=false \
+                             -var-file="environments/production.tfvars" \
+                             -var="server_image_uri=${SERVER_IMAGE_URI}" \
+                             -out=tfplan-preflight
+
+                           rm -f tfplan-preflight
+
+                          echo "Terraform production refresh preflight PASSED"
+                      '''
+                  }
+             }
+         }
+
+
            stage('Terraform Production Plan') {
     steps {
         withCredentials([[
