@@ -116,9 +116,13 @@ module "ecs_task_definition" {
 
   source = "./modules/ecs_task_definition"
 
-  family            = each.value.family
-  container_name    = each.value.container_name
-  container_image   = contains(["api", "worker"], each.key) ? var.server_image_uri : each.value.container_image
+  family         = each.value.family
+  container_name = each.value.container_name
+  container_image = contains(["api", "worker"], each.key) ? var.server_image_uri : (
+    each.key == "storefront" && var.storefront_image_uri != null
+    ? var.storefront_image_uri
+    : each.value.container_image
+  )
   container_port    = each.value.container_port
   container_command = each.value.container_command
   cpu               = each.value.cpu

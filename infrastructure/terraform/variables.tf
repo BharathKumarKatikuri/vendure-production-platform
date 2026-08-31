@@ -108,6 +108,12 @@ variable "server_image_uri" {
   type        = string
 }
 
+variable "storefront_image_uri" {
+  description = "Immutable ECR image URI for the Vendure Storefront."
+  type        = string
+  default     = null
+}
+
 
 variable "ecs_task_execution_roles" {
   description = "ECS task execution roles used by each Vendure workload."

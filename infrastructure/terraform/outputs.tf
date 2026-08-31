@@ -180,3 +180,19 @@ output "grafana_workspace_endpoint" {
   description = "Grafana endpoint of the workspace."
   value       = module.grafana.workspace_endpoint
 }
+
+
+output "api_task_definition_arn" {
+  description = "Exact ECS task definition ARN for the Vendure API."
+  value       = module.ecs_task_definition["api"].task_definition_arn
+}
+
+output "worker_task_definition_arn" {
+  description = "Exact ECS task definition ARN for the Vendure Worker."
+  value       = module.ecs_task_definition["worker"].task_definition_arn
+}
+
+output "storefront_task_definition_arn" {
+  description = "Exact ECS task definition ARN for the Vendure Storefront."
+  value       = module.ecs_task_definition["storefront"].task_definition_arn
+}
