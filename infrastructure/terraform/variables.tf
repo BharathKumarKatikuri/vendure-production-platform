@@ -451,3 +451,8 @@ variable "app_secret_recovery_window_in_days" {
     error_message = "app_secret_recovery_window_in_days must be 0 or between 7 and 30 days."
   }
 }
+
+variable "grafana_region" {
+  description = "AWS region used for Amazon Managed Grafana."
+  type        = string
+}

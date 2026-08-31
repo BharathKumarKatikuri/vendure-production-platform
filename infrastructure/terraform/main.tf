@@ -427,6 +427,10 @@ module "grafana_iam_role" {
 module "grafana" {
   source = "./modules/grafana"
 
+  providers = {
+    aws = aws.grafana
+  }
+
   workspace_name           = var.grafana_workspace_name
   authentication_providers = var.grafana_authentication_providers
   account_access_type      = var.grafana_account_access_type

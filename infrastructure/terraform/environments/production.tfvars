@@ -373,3 +373,6 @@ grafana_admin_user_ids = [
 
 app_secret_name                    = "vendure-production/app"
 app_secret_recovery_window_in_days = 7
+
+
+grafana_region = "ap-southeast-1"
