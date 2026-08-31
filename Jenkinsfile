@@ -44,12 +44,21 @@ pipeline {
          stage('Terraform Validation') {
              steps {
                  dir('infrastructure/terraform') {
-                     sh 'terraform fmt -check -recursive'
-                     sh 'terraform init -backend=false -input=false'
-                     sh 'terraform validate'
-                 }
+                     sh '''
+                         set -eu
+
+                         terraform fmt -check -recursive
+
+                          export TF_DATA_DIR="$PWD/.terraform-validation"
+                          rm -rf "$TF_DATA_DIR"
+                          trap 'rm -rf "$TF_DATA_DIR"' EXIT
+
+                          terraform init -backend=false -input=false
+                          terraform validate
+                     '''
+                  }
               }
-         }
+          }
 
 
          stage('Build Server Image') {
