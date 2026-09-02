@@ -367,7 +367,7 @@ grafana_permission_type = "CUSTOMER_MANAGED"
 grafana_role_name = "vendure-production-grafana-role"
 
 grafana_admin_user_ids = [
-  "8113bdea-a0e1-7034-e3db-94cba8b97c4f"
+  "69fa059c-9031-705e-00b2-0ce957f6da9e"
 ]
 
 
