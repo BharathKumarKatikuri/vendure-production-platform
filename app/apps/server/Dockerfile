@@ -57,6 +57,13 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
+# Trust the Amazon RDS CA chain for PostgreSQL TLS verification.
+COPY --from=build --chown=node:node \
+    /app/apps/server/certs/rds-ap-south-1-bundle.pem \
+    /app/certs/rds-ap-south-1-bundle.pem
+
+ENV NODE_EXTRA_CA_CERTS=/app/certs/rds-ap-south-1-bundle.pem
+
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         libgnutls30 \
