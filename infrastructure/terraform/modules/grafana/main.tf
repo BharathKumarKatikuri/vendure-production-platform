@@ -8,8 +8,4 @@ resource "aws_grafana_workspace" "this" {
   tags = var.tags
 }
 
-resource "aws_grafana_role_association" "admin" {
-  workspace_id = aws_grafana_workspace.this.id
-  role         = "ADMIN"
-  user_ids     = var.admin_user_ids
-}
+
