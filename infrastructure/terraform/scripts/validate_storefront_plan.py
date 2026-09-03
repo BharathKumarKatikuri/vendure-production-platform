@@ -21,6 +21,13 @@ CONFIG_FIELDS = [
     "tags",
 ]
 
+EMPTY_LIST_CONTAINER_FIELDS = (
+    "mountPoints",
+    "portMappings",
+    "systemControls",
+    "volumesFrom",
+)
+
 
 def fail(message, details=None):
     print(f"ERROR: {message}")
@@ -154,8 +161,19 @@ if before_image == after_image:
     fail("Storefront image did not change")
 
 
-before_normalized = copy.deepcopy(before_containers)
-after_normalized = copy.deepcopy(after_containers)
+def normalize_container_defaults(containers):
+    for container in containers:
+        for field in EMPTY_LIST_CONTAINER_FIELDS:
+            container.setdefault(field, [])
+    return containers
+
+before_normalized = normalize_container_defaults(
+    copy.deepcopy(before_containers)
+)
+after_normalized = normalize_container_defaults(
+    copy.deepcopy(after_containers)
+)
+
 
 find_primary_container(before_normalized)["image"] = "__STOREFRONT_IMAGE__"
 find_primary_container(after_normalized)["image"] = "__STOREFRONT_IMAGE__"
