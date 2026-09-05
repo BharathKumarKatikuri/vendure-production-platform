@@ -25,3 +25,16 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+
+variable "enable_ses_email_access" {
+  description = "Whether this ECS task role can send Vendure emails through Amazon SES."
+  type        = bool
+  default     = false
+}
+
+variable "ses_identity_arn" {
+  description = "ARN of the SES identity used by Vendure to send emails."
+  type        = string
+  default     = null
+}

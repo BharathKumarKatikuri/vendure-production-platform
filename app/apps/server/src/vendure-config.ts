@@ -14,6 +14,8 @@ import 'dotenv/config';
 import path from 'path';
 import { HealthPlugin } from './plugins/health/health.plugin';
 import { MetricsPlugin } from './plugins/metrics/metrics.plugin';
+import { SESv2Client, SendEmailCommand } from '@aws-sdk/client-sesv2';
+import { StripePlugin } from '@vendure-community/payments-plugin/package/stripe';
 
 const IS_DEV = process.env.APP_ENV === 'dev';
 const IS_PROD = process.env.APP_ENV === 'production';
@@ -21,6 +23,9 @@ const serverPort = +process.env.PORT || 3000;
 
 const s3AssetBucketName = process.env.S3_ASSET_BUCKET_NAME;
 const awsRegion = process.env.AWS_REGION;
+
+const emailFromAddress = process.env.EMAIL_FROM_ADDRESS;
+const storefrontUrl = process.env.STOREFRONT_URL;
 
 
 if (IS_PROD) {
@@ -32,7 +37,13 @@ if (IS_PROD) {
         throw new Error('AWS_REGION is required in production');
     }
 
+    if (!emailFromAddress) {
+        throw new Error('EMAIL_FROM_ADDRESS is required in production');
+    }
 
+    if (!storefrontUrl) {
+        throw new Error('STOREFRONT_URL is required in production');
+    }
 }
 
 export const config: VendureConfig = {
@@ -100,6 +111,10 @@ export const config: VendureConfig = {
                 : undefined,
          }),
 
+	 StripePlugin.init({
+             storeCustomersInStripe: false,
+         }),
+
 
      DefaultSchedulerPlugin.init(),
      DefaultJobQueuePlugin.init({ useDatabaseForBuffer: true }),
@@ -112,20 +127,50 @@ export const config: VendureConfig = {
             outputPath: path.join(__dirname, '../static/email/test-emails'),
             route: 'mailbox',
             handlers: defaultEmailHandlers,
-            templateLoader: new FileBasedTemplateLoader(path.join(__dirname, '../static/email/templates')),
+            templateLoader: new FileBasedTemplateLoader(
+                path.join(__dirname, '../static/email/templates')
+	    ),
             globalTemplateVars: {
                 // The following variables will change depending on your storefront implementation.
                 // Here we are assuming a storefront running at http://localhost:8080.
                 fromAddress: '"example" <noreply@example.com>',
-                verifyEmailAddressUrl: 'http://localhost:8080/verify',
-                passwordResetUrl: 'http://localhost:8080/password-reset',
-                changeEmailAddressUrl: 'http://localhost:8080/verify-email-address-change'
+                verifyEmailAddressUrl: 'http://localhost:3001/verify',
+                passwordResetUrl: 'http://localhost:3001/reset-password',
+                changeEmailAddressUrl: 'http://localhost:3001/account/verify-email'
             },
         }),
 
       ]
 
-     :[]),
+     :[
+
+        EmailPlugin.init({
+            handlers: defaultEmailHandlers,
+
+            templateLoader: new FileBasedTemplateLoader(
+                path.join(__dirname, '../static/email/templates')
+            ),
+
+            transport: {
+                type: 'ses',
+                SES: {
+                    sesClient: new SESv2Client({
+                        region: awsRegion!,
+                    }),
+
+                        SendEmailCommand,
+                },
+            },
+
+            globalTemplateVars: {
+                fromAddress: emailFromAddress!,
+                verifyEmailAddressUrl: `${storefrontUrl}/verify`,
+                passwordResetUrl: `${storefrontUrl}/reset-password`,
+                changeEmailAddressUrl:
+                    `${storefrontUrl}/account/verify-email`,
+            },
+        }),
+    ]),
 
 
        DashboardPlugin.init({

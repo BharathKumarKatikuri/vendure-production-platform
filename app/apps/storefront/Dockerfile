@@ -22,13 +22,17 @@ COPY apps/storefront ./apps/storefront
 
 # Vendure API required while Next.js prerenders pages
 ARG VENDURE_SHOP_API_URL
+ARG NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 
 RUN test -n "$VENDURE_SHOP_API_URL" || \
     (echo "VENDURE_SHOP_API_URL build argument is required" && exit 1)
 
+RUN test -n "$NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY" || \
+    (echo "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY build argument is required" && exit 1)
 
 # Build the production Storefront
 RUN VENDURE_SHOP_API_URL="$VENDURE_SHOP_API_URL" \
+    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="$NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY" \
     npm run build -w storefront
 
 

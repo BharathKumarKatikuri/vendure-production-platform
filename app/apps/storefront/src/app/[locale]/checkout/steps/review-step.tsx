@@ -1,12 +1,25 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2, MapPin, Truck, CreditCard, Edit, Mail } from 'lucide-react';
 import { useCheckout } from '../checkout-provider';
-import { placeOrder as placeOrderAction } from '../actions';
+import { placeOrder as placeOrderAction,
+	 createStripePaymentIntent,
+       } from '../actions';
+
+import { Elements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
+import { StripePaymentForm } from './stripe-payment-form';
 import { Price } from '@/components/commerce/price';
 import {useTranslations} from 'next-intl';
+
+const stripePublishableKey =
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+
+const stripePromise = stripePublishableKey
+  ? loadStripe(stripePublishableKey)
+  : null;
 
 interface ReviewStepProps {
   onEditStep: (step: 'contact' | 'shipping' | 'delivery' | 'payment') => void;
@@ -16,25 +29,51 @@ export default function ReviewStep({ onEditStep }: ReviewStepProps) {
   const t = useTranslations('Checkout');
   const { order, paymentMethods, selectedPaymentMethodCode, isGuest } = useCheckout();
   const [loading, setLoading] = useState(false);
+  const [stripeClientSecret, setStripeClientSecret] =
+    useState<string | null>(null);
+
+  useEffect(() => {
+    setStripeClientSecret(null);
+  },  [selectedPaymentMethodCode]);
 
   const selectedPaymentMethod = paymentMethods.find(
     (method) => method.code === selectedPaymentMethodCode
   );
 
+
   const handlePlaceOrder = async () => {
     if (!selectedPaymentMethodCode) return;
 
     setLoading(true);
+
     try {
-      await placeOrderAction(selectedPaymentMethodCode);
-    } catch (error) {
-      if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
-        throw error;
+        if (selectedPaymentMethodCode === 'stripe-payment') {
+      if (!stripePromise) {
+        throw new Error(
+          'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is not configured'
+        );
       }
-      console.error('Error placing order:', error);
+
+      const clientSecret = await createStripePaymentIntent();
+
+      setStripeClientSecret(clientSecret);
       setLoading(false);
+      return;
     }
-  };
+
+    await placeOrderAction(selectedPaymentMethodCode);
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message.includes('NEXT_REDIRECT')
+    ) {
+      throw error;
+    }
+
+    console.error('Error placing order:', error);
+    setLoading(false);
+  }
+};
 
   return (
     <div className="space-y-6">
@@ -161,6 +200,20 @@ export default function ReviewStep({ onEditStep }: ReviewStepProps) {
         </div>
       </div>
 
+      {selectedPaymentMethodCode === 'stripe-payment' &&
+        stripeClientSecret &&
+        stripePromise && (
+          <Elements
+            stripe={stripePromise}
+            options={{
+              clientSecret: stripeClientSecret,
+            }}
+          >
+            <StripePaymentForm orderCode={order.code} />
+          </Elements>
+        )}
+
+    {!stripeClientSecret && (
       <Button
         onClick={handlePlaceOrder}
         disabled={loading || !order.shippingAddress || !order.shippingLines?.length || !selectedPaymentMethodCode}
@@ -170,6 +223,7 @@ export default function ReviewStep({ onEditStep }: ReviewStepProps) {
         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         {t('placeOrder')}
       </Button>
+   )}
 
       {(!order.shippingAddress || !order.shippingLines?.length || !selectedPaymentMethodCode) && (
         <p className="text-sm text-destructive text-center">

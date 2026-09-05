@@ -543,13 +543,32 @@ fi
 
                 export STOREFRONT_API_URL="http://${ALB_DNS}/shop-api"
 
+                APP_SECRET_JSON="$(aws secretsmanager get-secret-value \
+                  --secret-id vendure-production/app \
+                  --region ap-south-1 \
+                  --query SecretString \
+                  --output text)"
+
+                STRIPE_PUBLISHABLE_KEY="$(printf '%s' "$APP_SECRET_JSON" | \
+                  python3 -c 'import json,sys; print(json.load(sys.stdin).get("STRIPE_PUBLISHABLE_KEY", ""))')"
+
+                unset APP_SECRET_JSON
+
+                test -n "$STRIPE_PUBLISHABLE_KEY" || {
+                  echo "STRIPE_PUBLISHABLE_KEY is missing from vendure-production/app"
+                  exit 1
+}
+
                 cd app
 
                 docker build \
                   -f apps/storefront/Dockerfile \
                   --build-arg VENDURE_SHOP_API_URL="${STOREFRONT_API_URL}" \
+                  --build-arg NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="${STRIPE_PUBLISHABLE_KEY}" \
                   -t "vendure-production-storefront:${IMAGE_TAG}" \
                   .
+
+                unset STRIPE_PUBLISHABLE_KEY
             '''
         }
     }

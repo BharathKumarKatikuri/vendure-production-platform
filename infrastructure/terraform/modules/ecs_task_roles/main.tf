@@ -87,3 +87,30 @@ resource "aws_iam_role_policy" "s3_asset_access" {
   role   = aws_iam_role.this.id
   policy = data.aws_iam_policy_document.s3_asset_access[0].json
 }
+
+
+
+data "aws_iam_policy_document" "ses_email_access" {
+  count = var.enable_ses_email_access ? 1 : 0
+
+  statement {
+    sid    = "SendVendureEmail"
+    effect = "Allow"
+
+    actions = [
+      "ses:SendEmail"
+    ]
+
+    resources = [
+      var.ses_identity_arn
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "ses_email_access" {
+  count = var.enable_ses_email_access ? 1 : 0
+
+  name   = "${var.role_name}-ses-email-access"
+  role   = aws_iam_role.this.id
+  policy = data.aws_iam_policy_document.ses_email_access[0].json
+}

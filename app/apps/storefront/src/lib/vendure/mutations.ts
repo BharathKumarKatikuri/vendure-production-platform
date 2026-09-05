@@ -453,3 +453,10 @@ export const SetCustomerForOrderMutation = graphql(`
         }
     }
 `);
+
+
+export const CreateStripePaymentIntentMutation = graphql(`
+    mutation CreateStripePaymentIntent {
+        createStripePaymentIntent
+    }
+`);

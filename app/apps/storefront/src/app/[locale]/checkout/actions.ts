@@ -9,6 +9,7 @@ import {
     CreateCustomerAddressMutation,
     TransitionOrderToStateMutation,
     SetCustomerForOrderMutation,
+    CreateStripePaymentIntentMutation,
 } from '@/lib/vendure/mutations';
 import {revalidatePath, updateTag} from 'next/cache';
 import {redirect} from '@/i18n/navigation';
@@ -100,6 +101,26 @@ export async function transitionToArrangingPayment() {
     const locale = await getLocale();
     revalidatePath(`/${locale}/checkout`);
 }
+
+
+export async function createStripePaymentIntent(): Promise<string> {
+    await transitionToArrangingPayment();
+
+    const result = await mutate(
+        CreateStripePaymentIntentMutation,
+        {},
+        {useAuthToken: true}
+    );
+
+    const clientSecret = result.data.createStripePaymentIntent;
+
+    if (typeof clientSecret !== 'string' || clientSecret.length === 0) {
+        throw new Error('Failed to create Stripe payment intent');
+    }
+
+    return clientSecret;
+}
+
 
 export async function placeOrder(paymentMethodCode: string) {
     // First, transition the order to ArrangingPayment state

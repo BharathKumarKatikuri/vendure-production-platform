@@ -142,6 +142,9 @@ module "ecs_task_definition" {
       DB_NAME              = module.rds.database_name
       S3_ASSET_BUCKET_NAME = module.s3_asset_bucket.bucket_id
       AWS_REGION           = var.aws_region
+
+      EMAIL_FROM_ADDRESS = module.ses.email_identity
+      STOREFRONT_URL     = "http://${module.alb.alb_dns_name}"
     } : {},
 
     each.key == "storefront" ? {
@@ -412,6 +415,12 @@ module "ecs_task_role" {
     each.key
   ) ? module.s3_asset_bucket.bucket_arn : null
 
+
+  enable_ses_email_access = each.key == "worker"
+
+  ses_identity_arn = each.key == "worker" ? module.ses.arn : null
+
+
   tags = var.common_tags
 }
 
@@ -440,4 +449,11 @@ module "grafana" {
   admin_user_ids = var.grafana_admin_user_ids
 
   tags = var.common_tags
+}
+
+
+module "ses" {
+  source = "./modules/ses"
+
+  email_identity = var.ses_email_identity
 }

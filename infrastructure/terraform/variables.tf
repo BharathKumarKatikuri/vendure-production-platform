@@ -456,3 +456,9 @@ variable "grafana_region" {
   description = "AWS region used for Amazon Managed Grafana."
   type        = string
 }
+
+
+variable "ses_email_identity" {
+  description = "AWS SES used as the email sender identity"
+  type        = string
+}

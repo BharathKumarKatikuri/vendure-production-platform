@@ -96,7 +96,7 @@ export async function Footer() {
                         <ul className="space-y-2 text-sm text-muted-foreground">
                             <li>
                                 <a
-                                    href="https://github.com/vendure-ecommerce"
+                                    href="https://github.com/BharathKumarKatikuri"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="hover:text-foreground transition-colors"
@@ -116,7 +116,7 @@ export async function Footer() {
                             </li>
                             <li>
                                 <a
-                                    href="https://github.com/vendure-ecommerce/vendure"
+                                    href="https://github.com/BharathKumarKatikuri/vendure-production-platform"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="hover:text-foreground transition-colors"
