@@ -376,3 +376,6 @@ app_secret_recovery_window_in_days = 7
 
 
 grafana_region = "ap-southeast-1"
+
+
+ses_email_identity = "katikuribharath@gmail.com"
