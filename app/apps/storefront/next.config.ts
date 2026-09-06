@@ -18,7 +18,12 @@ const nextConfig: NextConfig = {
             },
             {
                 hostname: 'localhost'
-            }
+            },
+	    {
+                protocol: 'http',
+                hostname: '*.ap-south-1.elb.amazonaws.com',
+                pathname: '/assets/**',
+            },
         ],
     },
     
