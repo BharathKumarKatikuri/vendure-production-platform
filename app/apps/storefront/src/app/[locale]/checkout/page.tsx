@@ -8,13 +8,13 @@ import {
     GetCustomerAddressesQuery,
     GetEligiblePaymentMethodsQuery,
     GetEligibleShippingMethodsQuery,
+    GetAvailableCountriesQuery,
 } from '@/lib/vendure/queries';
 import {redirect} from '@/i18n/navigation';
 import CheckoutFlow from './checkout-flow';
 import {CheckoutProvider} from './checkout-provider';
 import {noIndexRobots} from '@/lib/metadata';
 import {getActiveCustomer} from '@/lib/vendure/actions';
-import {getAvailableCountriesCached} from '@/lib/vendure/cached';
 
 export async function generateMetadata(): Promise<Metadata> {
     const locale = await getRouteLocale();
@@ -32,13 +32,13 @@ export default async function CheckoutPage() {
     const customer = await getActiveCustomer();
     const isGuest = !customer;
 
-    const [orderRes, addressesRes, countries, shippingMethodsRes, paymentMethodsRes] =
+    const [orderRes, addressesRes, countriesRes, shippingMethodsRes, paymentMethodsRes] =
         await Promise.all([
             query(GetActiveOrderForCheckoutQuery, {}, {useAuthToken: true, currencyCode}),
             isGuest
                 ? Promise.resolve({ data: { activeCustomer: null } })
                 : query(GetCustomerAddressesQuery, {}, {useAuthToken: true}),
-            getAvailableCountriesCached(locale),
+            query(GetAvailableCountriesQuery, {}, {languageCode: locale}),
             query(GetEligibleShippingMethodsQuery, {}, {useAuthToken: true, currencyCode}),
             query(GetEligiblePaymentMethodsQuery, {}, {useAuthToken: true, currencyCode}),
         ]);
@@ -54,6 +54,7 @@ export default async function CheckoutPage() {
     }
 
     const addresses = addressesRes.data.activeCustomer?.addresses || [];
+    const countries = countriesRes.data.availableCountries || [];
     const shippingMethods = shippingMethodsRes.data.eligibleShippingMethods || [];
     const paymentMethods =
         paymentMethodsRes.data.eligiblePaymentMethods?.filter((m) => m.isEligible) || [];

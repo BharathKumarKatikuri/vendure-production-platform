@@ -1,6 +1,6 @@
 import {cacheLife, cacheTag} from 'next/cache';
 import {query} from './api';
-import {GetActiveChannelQuery, GetAvailableCountriesQuery, GetTopCollectionsQuery} from './queries';
+import {GetActiveChannelQuery, GetTopCollectionsQuery} from './queries';
 
 /**
  * Get the active channel with caching enabled.
@@ -20,14 +20,6 @@ export async function getActiveChannelCached() {
  * Countries list rarely changes, so we cache it with max duration.
  * Country names are translatable, so locale is required.
  */
-export async function getAvailableCountriesCached(locale: string) {
-    'use cache';
-    cacheLife('max');
-    cacheTag(`countries-${locale}`);
-
-    const result = await query(GetAvailableCountriesQuery, undefined, {languageCode: locale});
-    return result.data.availableCountries || [];
-}
 
 /**
  * Get top-level collections with caching enabled.
