@@ -98,7 +98,8 @@ data "aws_iam_policy_document" "ses_email_access" {
     effect = "Allow"
 
     actions = [
-      "ses:SendEmail"
+      "ses:SendEmail",
+      "ses:SendRawEmail"
     ]
 
     resources = [
