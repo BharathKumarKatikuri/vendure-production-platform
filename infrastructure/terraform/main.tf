@@ -161,10 +161,13 @@ module "ecs_task_definition" {
       DB_PASSWORD = "${module.rds.master_user_secret_arn}:password::"
     } : {},
 
-    each.key == "api" ? {
+    contains(["api", "worker"], each.key) ? {
       SUPERADMIN_USERNAME = "${module.app_secret.secret_arn}:SUPERADMIN_USERNAME::"
       SUPERADMIN_PASSWORD = "${module.app_secret.secret_arn}:SUPERADMIN_PASSWORD::"
-      COOKIE_SECRET       = "${module.app_secret.secret_arn}:COOKIE_SECRET::"
+    } : {},
+
+    each.key == "api" ? {
+      COOKIE_SECRET = "${module.app_secret.secret_arn}:COOKIE_SECRET::"
     } : {}
   )
 
