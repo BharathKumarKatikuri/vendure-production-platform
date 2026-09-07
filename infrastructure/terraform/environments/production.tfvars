@@ -98,6 +98,7 @@ security_groups = {
   }
 }
 
+db_host_override = "vendure-production-postgres-recovery.cl6iusc82bhh.ap-south-1.rds.amazonaws.com"
 
 ecs_clusters = {
   production = {
@@ -105,8 +106,6 @@ ecs_clusters = {
     container_insights_enabled = true
   }
 }
-
-
 
 ecs_task_definitions = {
   api = {

@@ -137,7 +137,7 @@ module "ecs_task_definition" {
   environment = merge(
     each.value.environment,
     contains(["api", "worker"], each.key) ? {
-      DB_HOST              = module.rds.database_address
+      DB_HOST              = var.db_host_override != null ? var.db_host_override : module.rds.database_address
       DB_PORT              = tostring(module.rds.database_port)
       DB_NAME              = module.rds.database_name
       S3_ASSET_BUCKET_NAME = module.s3_asset_bucket.bucket_id

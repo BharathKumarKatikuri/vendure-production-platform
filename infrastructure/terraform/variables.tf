@@ -462,3 +462,9 @@ variable "ses_email_identity" {
   description = "AWS SES used as the email sender identity"
   type        = string
 }
+
+variable "db_host_override" {
+  description = "Optional database endpoint override for recovery scenarios."
+  type        = string
+  default     = null
+}
