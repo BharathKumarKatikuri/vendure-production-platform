@@ -220,7 +220,8 @@ module "ecs_task_execution_role" {
     module.rds.master_user_secret_arn,
     module.app_secret.secret_arn
     ] : each.key == "worker" ? [
-    module.rds.master_user_secret_arn
+    module.rds.master_user_secret_arn,
+    module.app_secret.secret_arn
 
   ] : []
 
