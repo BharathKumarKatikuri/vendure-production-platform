@@ -26,7 +26,7 @@ COPY apps/server ./apps/server
 # vendure build all
 #
 # It produces the server, worker and dashboard builds.
-RUN npm run build -w server
+RUN NODE_ENV=production npm run build -w server
 
 
 # --------------------------------------------------
