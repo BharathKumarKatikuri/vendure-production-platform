@@ -101,8 +101,7 @@ COPY --from=production-deps --chown=node:node \
 RUN rm -rf \
     /app/node_modules/esbuild \
     /app/node_modules/@esbuild \
-    /app/node_modules/next \
-    /app/node_modules/sharp
+    /app/node_modules/next
 
 # Copy the compiled Vendure output.
 COPY --from=build --chown=node:node \
