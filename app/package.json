@@ -15,7 +15,7 @@
   },
   "devDependencies": {
     "concurrently": "^9.0.0",
-    "next": "16.3.2"
+    "next": "16.3.3"
   },
   "workspaces": [
     "apps/*"
@@ -29,7 +29,10 @@
       "ws": "7.5.12"
     },
     "@vendure/asset-server-plugin": {
-      "sharp": "0.35.0"
+      "sharp": "0.35.4"
+    },
+    "@nestjs/platform-express": {
+      "multer": "2.3.0"
     }
   }
 }

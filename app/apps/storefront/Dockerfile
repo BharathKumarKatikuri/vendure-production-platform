@@ -45,6 +45,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends --only-upgrade \
         libcap2 \
         libgnutls30 \
+        libpcre2-8-0 \
     && rm -rf /var/lib/apt/lists/*
 
 ENV NODE_ENV=production

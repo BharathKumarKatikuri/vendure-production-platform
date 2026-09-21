@@ -68,6 +68,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         libgnutls30 \
         libcap2 \
+        libpcre2-8-0 \
     && rm -rf /var/lib/apt/lists/* 
     
 RUN rm -rf /usr/local/lib/node_modules/npm \
