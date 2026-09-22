@@ -98,7 +98,7 @@ security_groups = {
   }
 }
 
-db_host_override = "vendure-production-postgres-recovery.cl6iusc82bhh.ap-south-1.rds.amazonaws.com"
+# db_host_override = "vendure-production-postgres-recovery.cl6iusc82bhh.ap-south-1.rds.amazonaws.com"  # reverted 2026-09-21: recovery has no managed secret; primary holds the real catalog
 
 ecs_clusters = {
   production = {
