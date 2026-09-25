@@ -1,10 +1,10 @@
 resource "aws_ecs_service" "this" {
-  name            = var.service_name
+  name                   = var.service_name
   enable_execute_command = var.enable_execute_command
-  cluster         = var.cluster_arn
-  task_definition = var.task_definition_arn
-  desired_count   = var.desired_count
-  launch_type     = "FARGATE"
+  cluster                = var.cluster_arn
+  task_definition        = var.task_definition_arn
+  desired_count          = var.desired_count
+  launch_type            = "FARGATE"
 
   network_configuration {
     subnets          = var.subnet_ids
