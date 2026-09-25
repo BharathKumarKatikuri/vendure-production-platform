@@ -312,28 +312,28 @@ alb_listener_rule_path_patterns = [
 
 ecs_services = {
   api = {
-    service_name     = "vendure-api-service"
-    desired_count    = 0
-    assign_public_ip = false
-    enable_execute_command  = false
-    container_name   = "vendure-api"
-    container_port   = 3000
+    service_name           = "vendure-api-service"
+    desired_count          = 0
+    assign_public_ip       = false
+    enable_execute_command = false
+    container_name         = "vendure-api"
+    container_port         = 3000
   }
 
   storefront = {
-    service_name     = "vendure-storefront-service"
-    desired_count    = 0
-    assign_public_ip = false
-    enable_execute_command  = true
-    container_name   = "vendure-storefront"
-    container_port   = 3001
+    service_name           = "vendure-storefront-service"
+    desired_count          = 0
+    assign_public_ip       = false
+    enable_execute_command = true
+    container_name         = "vendure-storefront"
+    container_port         = 3001
   }
 
   worker = {
-    service_name     = "vendure-worker-service"
-    desired_count    = 0
-    assign_public_ip = false
-    enable_execute_command  = false
+    service_name           = "vendure-worker-service"
+    desired_count          = 0
+    assign_public_ip       = false
+    enable_execute_command = false
   }
 }
 
