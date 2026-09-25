@@ -1,5 +1,6 @@
 resource "aws_ecs_service" "this" {
   name            = var.service_name
+  enable_execute_command = var.enable_execute_command
   cluster         = var.cluster_arn
   task_definition = var.task_definition_arn
   desired_count   = var.desired_count
