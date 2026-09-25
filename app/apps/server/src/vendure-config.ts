@@ -14,7 +14,6 @@ import 'dotenv/config';
 import path from 'path';
 import { HealthPlugin } from './plugins/health/health.plugin';
 import { MetricsPlugin } from './plugins/metrics/metrics.plugin';
-import { SESv2Client, SendEmailCommand } from '@aws-sdk/client-sesv2';
 import { StripePlugin } from '@vendure-community/payments-plugin/package/stripe';
 
 const IS_DEV = process.env.APP_ENV === 'dev';
@@ -158,13 +157,14 @@ export const config: VendureConfig = {
             ),
 
             transport: {
-                type: 'ses',
-                SES: {
-                    sesClient: new SESv2Client({
-                        region: awsRegion!,
-                    }),
-
-                        SendEmailCommand,
+                type: 'smtp',
+                host: process.env.SMTP_HOST,
+                port: Number(process.env.SMTP_PORT),
+                secure: false,
+                requireTLS: true,
+                auth: {
+                    user: process.env.SMTP_USERNAME,
+                    pass: process.env.SMTP_PASSWORD,
                 },
             },
 

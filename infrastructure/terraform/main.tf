@@ -143,8 +143,10 @@ module "ecs_task_definition" {
       S3_ASSET_BUCKET_NAME = module.s3_asset_bucket.bucket_id
       AWS_REGION           = var.aws_region
 
-      EMAIL_FROM_ADDRESS = module.ses.email_identity
+      EMAIL_FROM_ADDRESS = var.email_from_address
       STOREFRONT_URL     = "http://${module.alb.alb_dns_name}"
+      SMTP_HOST          = "smtp-relay.brevo.com"
+      SMTP_PORT          = "587"
     } : {},
 
     each.key == "storefront" ? {
@@ -164,6 +166,8 @@ module "ecs_task_definition" {
     contains(["api", "worker"], each.key) ? {
       SUPERADMIN_USERNAME = "${module.app_secret.secret_arn}:SUPERADMIN_USERNAME::"
       SUPERADMIN_PASSWORD = "${module.app_secret.secret_arn}:SUPERADMIN_PASSWORD::"
+      SMTP_USERNAME       = "${module.app_secret.secret_arn}:SMTP_USERNAME::"
+      SMTP_PASSWORD       = "${module.app_secret.secret_arn}:SMTP_PASSWORD::"
     } : {},
 
     each.key == "api" ? {
@@ -419,12 +423,6 @@ module "ecs_task_role" {
     each.key
   ) ? module.s3_asset_bucket.bucket_arn : null
 
-
-  enable_ses_email_access = each.key == "worker"
-
-  ses_identity_arn = each.key == "worker" ? module.ses.arn : null
-
-
   tags = var.common_tags
 }
 
@@ -455,9 +453,3 @@ module "grafana" {
   tags = var.common_tags
 }
 
-
-module "ses" {
-  source = "./modules/ses"
-
-  email_identity = var.ses_email_identity
-}

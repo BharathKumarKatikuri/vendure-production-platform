@@ -458,13 +458,13 @@ variable "grafana_region" {
 }
 
 
-variable "ses_email_identity" {
-  description = "AWS SES used as the email sender identity"
-  type        = string
-}
-
 variable "db_host_override" {
   description = "Optional database endpoint override for recovery scenarios."
   type        = string
   default     = null
+}
+
+variable "email_from_address" {
+  description = "Email address used as the sender for transactional emails."
+  type        = string
 }
