@@ -382,10 +382,11 @@ module "ecs_service" {
   for_each = var.ecs_services
   source   = "./modules/ecs_services"
 
-  service_name        = each.value.service_name
-  cluster_arn         = module.ecs_cluster["production"].cluster_arn
-  task_definition_arn = module.ecs_task_definition[each.key].task_definition_arn
-  desired_count       = each.value.desired_count
+  service_name           = each.value.service_name
+  cluster_arn            = module.ecs_cluster["production"].cluster_arn
+  task_definition_arn    = module.ecs_task_definition[each.key].task_definition_arn
+  desired_count          = each.value.desired_count
+  enable_execute_command = each.value.enable_execute_command
 
   subnet_ids = [
     module.subnets["private_a"].subnet_id,

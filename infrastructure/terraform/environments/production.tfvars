@@ -315,6 +315,7 @@ ecs_services = {
     service_name     = "vendure-api-service"
     desired_count    = 0
     assign_public_ip = false
+    enable_execute_command  = false
     container_name   = "vendure-api"
     container_port   = 3000
   }
@@ -323,6 +324,7 @@ ecs_services = {
     service_name     = "vendure-storefront-service"
     desired_count    = 0
     assign_public_ip = false
+    enable_execute_command  = true
     container_name   = "vendure-storefront"
     container_port   = 3001
   }
@@ -331,6 +333,7 @@ ecs_services = {
     service_name     = "vendure-worker-service"
     desired_count    = 0
     assign_public_ip = false
+    enable_execute_command  = false
   }
 }
 

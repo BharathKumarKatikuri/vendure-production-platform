@@ -368,11 +368,12 @@ variable "ecs_services" {
   description = "Configuration for Vendure ECS services."
 
   type = map(object({
-    service_name     = string
-    desired_count    = number
-    assign_public_ip = bool
-    container_name   = optional(string)
-    container_port   = optional(number)
+    service_name           = string
+    desired_count          = number
+    assign_public_ip       = bool
+    enable_execute_command = bool
+    container_name         = optional(string)
+    container_port         = optional(number)
   }))
 }
 
