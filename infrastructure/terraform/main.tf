@@ -454,3 +454,12 @@ module "grafana" {
   tags = var.common_tags
 }
 
+module "route53" {
+  source = "./modules/route53"
+
+  domain_name     = var.route53_domain_name
+  api_domain_name = var.api_domain_name
+
+  alb_dns_name = module.alb.alb_dns_name
+  alb_zone_id  = module.alb.alb_zone_id
+}

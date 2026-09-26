@@ -469,3 +469,14 @@ variable "email_from_address" {
   description = "Email address used as the sender for transactional emails."
   type        = string
 }
+
+
+variable "route53_domain_name" {
+  description = "Root domain name managed by Route 53."
+  type        = string
+}
+
+variable "api_domain_name" {
+  description = "Public domain name for the production API."
+  type        = string
+}

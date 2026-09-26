@@ -381,3 +381,6 @@ app_secret_recovery_window_in_days = 7
 grafana_region = "ap-southeast-1"
 
 email_from_address = "bharathkumarkatkuri990@gmail.com"
+
+route53_domain_name = "cloudbuilders.site"
+api_domain_name     = "cloudbuilders.site"
