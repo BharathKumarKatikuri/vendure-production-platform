@@ -307,7 +307,8 @@ alb_listener_rule_path_patterns = [
   "/shop-api*",
   "/admin-api*",
   "/assets*",
-  "/dashboard*"
+  "/dashboard*",
+  "/payments/stripe*",
 ]
 
 ecs_services = {
