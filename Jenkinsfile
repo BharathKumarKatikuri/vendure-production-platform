@@ -10,6 +10,14 @@ pipeline {
         disableConcurrentBuilds()
     }
 
+     parameters {
+        choice(
+            name: 'DEPLOY_MODE',
+            choices: ['APPLICATION', 'INFRASTRUCTURE'],
+            description: 'APPLICATION deploys a new server image. INFRASTRUCTURE preserves the currently deployed ECS server image.'
+        )
+     }
+
     stages {
 
         stage('Checkout') {
@@ -20,6 +28,9 @@ pipeline {
 
 
          stage('Install Dependencies') {
+             when {
+                 expression { params.DEPLOY_MODE == 'APPLICATION' }
+             }
              steps {
                  dir('app') {
                      sh 'npm ci --no-audit --no-fund'
@@ -29,6 +40,9 @@ pipeline {
 
 
          stage('Application Validation') {
+             when {
+                 expression { params.DEPLOY_MODE == 'APPLICATION' }
+             }
              steps {
                  dir('app') {
                      sh 'npm run build -w server'
@@ -62,6 +76,9 @@ pipeline {
 
 
          stage('Build Server Image') {
+             when {
+                 expression { params.DEPLOY_MODE == 'APPLICATION' }
+             }
              steps {
                  script {
                      env.GIT_SHA = sh(
@@ -83,6 +100,9 @@ pipeline {
 
 
          stage('Security Scan - Server') {
+             when {
+                 expression { params.DEPLOY_MODE == 'APPLICATION' }
+             }
              steps {
                  sh """
                      docker run --rm \
@@ -97,6 +117,108 @@ pipeline {
                  """
              }
          }
+
+
+           stage('Resolve Current Server Image') {
+               when {
+                   expression { params.DEPLOY_MODE == 'INFRASTRUCTURE' }
+               }
+               steps {
+                   script {
+                       withCredentials([[
+                           $class: 'AmazonWebServicesCredentialsBinding',
+                           credentialsId: 'vendure-jenkins-terraform'
+                       ]]) {
+                           env.SERVER_IMAGE_URI = sh(
+                               script: '''
+                                   set -eu
+                                   set +x
+
+                                   ROLE_CREDS="$(aws sts assume-role \
+                                     --role-arn arn:aws:iam::974268348514:role/vendure-terraform-deployer \
+                                     --role-session-name "jenkins-image-check-${BUILD_NUMBER}" \
+                                     --query 'Credentials.[AccessKeyId,SecretAccessKey,SessionToken]' \
+                                     --output text)"
+
+                                   export AWS_ACCESS_KEY_ID="$(printf '%s\\n' "$ROLE_CREDS" | awk '{print $1}')"
+                                   export AWS_SECRET_ACCESS_KEY="$(printf '%s\\n' "$ROLE_CREDS" | awk '{print $2}')"
+                                   export AWS_SESSION_TOKEN="$(printf '%s\\n' "$ROLE_CREDS" | awk '{print $3}')"
+
+                                   unset ROLE_CREDS
+
+                                   API_TASK_DEFINITION="$(aws ecs describe-services \
+                                     --cluster vendure-production-cluster \
+                                     --services vendure-api-service \
+                                     --region ap-south-1 \
+                                     --query 'services[0].taskDefinition' \
+                                     --output text)"
+
+                                   WORKER_TASK_DEFINITION="$(aws ecs describe-services \
+                                     --cluster vendure-production-cluster \
+                                     --services vendure-worker-service \
+                                     --region ap-south-1 \
+                                     --query 'services[0].taskDefinition' \
+                                     --output text)"
+
+                                   if [ -z "$API_TASK_DEFINITION" ] || [ "$API_TASK_DEFINITION" = "None" ]; then
+                                     echo "ERROR: Could not resolve API task definition" >&2
+                                     exit 1
+                                   fi
+
+                                   if [ -z "$WORKER_TASK_DEFINITION" ] || [ "$WORKER_TASK_DEFINITION" = "None" ]; then
+                                     echo "ERROR: Could not resolve Worker task definition" >&2
+                                     exit 1
+                                   fi
+
+                                   API_IMAGE="$(aws ecs describe-task-definition \
+                                     --task-definition "$API_TASK_DEFINITION" \
+                                     --region ap-south-1 \
+                                     --query "taskDefinition.containerDefinitions[?name=='vendure-api'].image | [0]" \
+                                     --output text)"
+
+                                   WORKER_IMAGE="$(aws ecs describe-task-definition \
+                                     --task-definition "$WORKER_TASK_DEFINITION" \
+                                     --region ap-south-1 \
+                                     --query "taskDefinition.containerDefinitions[?name=='vendure-worker'].image | [0]" \
+                                     --output text)"
+
+                                   if [ -z "$API_IMAGE" ] || [ "$API_IMAGE" = "None" ]; then
+                                     echo "ERROR: Could not resolve API container image" >&2
+                                     exit 1
+                                   fi
+
+                                   if [ -z "$WORKER_IMAGE" ] || [ "$WORKER_IMAGE" = "None" ]; then
+                                     echo "ERROR: Could not resolve Worker container image" >&2
+                                     exit 1
+                                   fi
+
+                                   if [ "$API_IMAGE" != "$WORKER_IMAGE" ]; then
+                                     echo "ERROR: API and Worker images do not match" >&2
+                                     echo "API:    $API_IMAGE" >&2
+                                     echo "Worker: $WORKER_IMAGE" >&2
+                                     exit 1
+                                   fi
+
+                                   case "$API_IMAGE" in
+                                     974268348514.dkr.ecr.ap-south-1.amazonaws.com/vendure-production:*)
+                                       ;;
+                                     *)
+                                       echo "ERROR: Current server image is not from the expected production ECR repository" >&2
+                                       echo "Image: $API_IMAGE" >&2
+                                       exit 1
+                                       ;;
+                                   esac
+
+                                   printf '%s' "$API_IMAGE"
+                               ''',
+                               returnStdout: true
+                           ).trim()
+
+                           echo "Infrastructure mode will preserve deployed server image: ${env.SERVER_IMAGE_URI}"
+                       }
+                   }
+               }
+           }
 
 
            stage('Terraform Production Preflight') {
@@ -267,6 +389,9 @@ fi
 
 
         stage('Push Server Image to ECR') {
+            when {
+                expression { params.DEPLOY_MODE == 'APPLICATION' }
+            }
             steps {
                 withCredentials([[
                     $class: 'AmazonWebServicesCredentialsBinding',
@@ -292,6 +417,9 @@ fi
 
 
         stage('Verify Application Secret') {
+            when {
+                expression { params.DEPLOY_MODE == 'APPLICATION' }
+            }
             steps {
                 script {
                     def currentVersionCount = ''
@@ -375,6 +503,9 @@ fi
 
 
         stage('Deploy API') {
+            when {
+                expression { params.DEPLOY_MODE == 'APPLICATION' }
+            }
             steps {
                 withCredentials([[
                     $class: 'AmazonWebServicesCredentialsBinding',
@@ -449,6 +580,9 @@ fi
 
 
        stage('Deploy Worker') {
+            when {
+                expression { params.DEPLOY_MODE == 'APPLICATION' }
+            }
            steps {
                withCredentials([[
                    $class: 'AmazonWebServicesCredentialsBinding',
@@ -515,6 +649,9 @@ fi
 
 
        stage('Build Production Storefront') {
+            when {
+                expression { params.DEPLOY_MODE == 'APPLICATION' }
+            }
            steps {
                withCredentials([[
                    $class: 'AmazonWebServicesCredentialsBinding',
@@ -576,6 +713,9 @@ fi
 
 
         stage('Security Scan - Storefront') {
+            when {
+                expression { params.DEPLOY_MODE == 'APPLICATION' }
+            }
             steps {
                 sh '''
                     docker run --rm \
@@ -593,6 +733,9 @@ fi
 
 
         stage('Push Storefront Image to ECR') {
+            when {
+                expression { params.DEPLOY_MODE == 'APPLICATION' }
+            }
             steps {
                 script {
                     env.STOREFRONT_IMAGE_URI = "974268348514.dkr.ecr.ap-south-1.amazonaws.com/vendure-production-storefront:${env.IMAGE_TAG}"
@@ -622,6 +765,9 @@ fi
 
 
          stage('Terraform Storefront Plan') {
+            when {
+                expression { params.DEPLOY_MODE == 'APPLICATION' }
+            }
              steps {
                  withCredentials([[
                      $class: 'AmazonWebServicesCredentialsBinding',
@@ -657,6 +803,9 @@ fi
 
 
           stage('Validate Storefront Terraform Plan') {
+            when {
+                expression { params.DEPLOY_MODE == 'APPLICATION' }
+            }
               steps {
                   dir('infrastructure/terraform') {
                       sh '''
@@ -668,6 +817,9 @@ fi
 
 
           stage('Terraform Storefront Apply') {
+            when {
+                expression { params.DEPLOY_MODE == 'APPLICATION' }
+            }
               steps {
                   withCredentials([[
                       $class: 'AmazonWebServicesCredentialsBinding',
@@ -698,6 +850,9 @@ fi
 
 
             stage('Deploy Storefront') {
+            when {
+                expression { params.DEPLOY_MODE == 'APPLICATION' }
+            }
                 steps {
                     withCredentials([[
                         $class: 'AmazonWebServicesCredentialsBinding',
