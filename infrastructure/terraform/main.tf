@@ -176,13 +176,13 @@ module "ecs_task_definition" {
       AWS_REGION           = var.aws_region
 
       EMAIL_FROM_ADDRESS = var.email_from_address
-      STOREFRONT_URL     = "http://${module.alb.alb_dns_name}"
+      STOREFRONT_URL     = "https://${var.route53_domain_name}"
       SMTP_HOST          = "smtp-relay.brevo.com"
       SMTP_PORT          = "587"
     } : {},
 
     each.key == "storefront" ? {
-      VENDURE_SHOP_API_URL = "http://${module.alb.alb_dns_name}/shop-api"
+      VENDURE_SHOP_API_URL = "https://${var.route53_domain_name}/shop-api"
     } : {}
 
   )
