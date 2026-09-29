@@ -1,3 +1,40 @@
+resource "aws_acm_certificate" "cloudbuilders" {
+  domain_name       = var.route53_domain_name
+  validation_method = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_route53_record" "acm_validation" {
+  for_each = {
+    for dvo in aws_acm_certificate.cloudbuilders.domain_validation_options :
+    dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  }
+
+  zone_id = module.route53.zone_id
+  name    = each.value.name
+  type    = each.value.type
+  ttl     = 60
+  records = [each.value.record]
+
+  allow_overwrite = true
+}
+
+resource "aws_acm_certificate_validation" "cloudbuilders" {
+  certificate_arn = aws_acm_certificate.cloudbuilders.arn
+
+  validation_record_fqdns = [
+    for record in aws_route53_record.acm_validation :
+    record.fqdn
+  ]
+}
+
 module "vpc" {
   source   = "./modules/vpc"
   vpc_cidr = var.vpc_cidr
@@ -364,14 +401,29 @@ module "alb_listener" {
   listener_port            = var.alb_listener_port
   listener_protocol        = var.alb_listener_protocol
   default_target_group_arn = module.target_groups["storefront"].target_group_arn
+
+  redirect_to_https = true
+
 }
 
+
+module "alb_https_listener" {
+  source = "./modules/alb_listener"
+
+  load_balancer_arn        = module.alb.alb_arn
+  listener_port            = 443
+  listener_protocol        = "HTTPS"
+  default_target_group_arn = module.target_groups["storefront"].target_group_arn
+
+  certificate_arn   = aws_acm_certificate_validation.cloudbuilders.certificate_arn
+  redirect_to_https = false
+}
 
 
 module "alb_listener_rule" {
   source = "./modules/alb_listener_rule"
 
-  listener_arn     = module.alb_listener.listener_arn
+  listener_arn     = module.alb_https_listener.listener_arn
   priority         = var.alb_listener_rule_priority
   path_patterns    = var.alb_listener_rule_path_patterns
   target_group_arn = module.target_groups["api"].target_group_arn

@@ -18,4 +18,14 @@ variable "default_target_group_arn" {
   type        = string
 }
 
+variable "certificate_arn" {
+  description = "ACM certificate ARN used by an HTTPS listener."
+  type        = string
+  default     = null
+}
 
+variable "redirect_to_https" {
+  description = "Whether the HTTP listener redirects requests to HTTPS."
+  type        = bool
+  default     = false
+}
